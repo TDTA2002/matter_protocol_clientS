@@ -1,29 +1,189 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đặt lại mật khẩu</title>
+    <title>Reset Password</title>
+    <style>
+        @import 'https://static.stayjapan.com/assets/dashboard/application-33c1a06b7784b53cd746d479718b6295c0fcefebb696e78dcee7c68efc92fada.css';
+
+        .horizontal-container {
+            margin: 0 auto;
+            width: 100%;
+
+            @media (min-width: 768px) {
+                width: 500px;
+            }
+
+            .custom-progress-bar {
+                counter-reset: step;
+                /* Initial step: 0 */
+                padding-left: 0;
+            }
+
+            .custom-progress-bar li {
+                float: left;
+                font-size: 12px;
+                list-style: none;
+                position: relative;
+                text-align: center;
+                text-transform: uppercase;
+                width: 50%;
+
+                &:before {
+                    background-color: white;
+                    border-radius: 50%;
+                    border: 2px solid #ccc;
+                    color: #ccc;
+                    content: counter(step);
+                    counter-increment: step;
+                    display: block;
+                    height: 20px;
+                    line-height: 18px;
+                    margin: 0 auto;
+                    text-align: center;
+                    width: 20px;
+                }
+
+                &:after {
+                    background-color: #e5e5e5;
+                    content: '';
+                    height: 3px;
+                    left: -50%;
+                    transform: translateX(50%);
+                    position: absolute;
+                    top: 9px;
+                    width: 100%;
+                    z-index: -1;
+                }
+
+                &:last-child {
+                    &:before {
+                        display: none;
+                    }
+
+                    &:after {
+                        display: none;
+                    }
+                }
+
+                &.active {
+                    &:before {
+                        border-color: red;
+                        color: red;
+                    }
+                }
+
+                &.finished {
+                    &:before {
+                        background-color: red;
+                        border-color: red;
+                        color: #fff;
+                        content: "\2713";
+                    }
+                }
+            }
+
+            .custom-progress-line {
+                height: 3px;
+                position: absolute;
+                content: '';
+                top: 9px;
+                left: 0;
+                width: 25%;
+                background-color: red;
+            }
+
+            .horizontal-form-box {
+                background-color: #fff;
+                border: 1px solid #e5e5e5;
+                height: 466px;
+                padding: 30px;
+
+                .horizontal-info-container img {
+                    height: 75px;
+                    margin-bottom: 20px;
+                }
+
+                .horizontal-heading {
+                    color: #000;
+                    font-size: 22px;
+                    font-weight: bold;
+                    text-transform: capitalize;
+                }
+
+                .horizontal-subtitle {
+                    letter-spacing: 1px;
+                    margin-bottom: 20px;
+                    text-align: left;
+                }
+
+                .horizontal-form label,
+                .horizontal-form button {
+                    text-transform: capitalize;
+                }
+
+                .horizontal-form label {
+                    color: #000;
+                    font-weight: normal;
+                }
+            }
+        }
+    </style>
 </head>
 
 <body>
-    <h1>Đặt lại mật khẩu</h1>
-    <% if (message) { %>
-        <p>
-            <%= message %>
-                <%= token %>
-        </p>
-        <% } %>
-            <form action="http://127.0.0.1:3000/api/v1/users/reset-password/<%= token %>" method="get">
-                <label for="password">Mật khẩu mới:</label>
-                <input type="password" id="password" name="newPassword" required>
-                <br>
-                <label for="confirmPassword">Xác nhận mật khẩu:</label>
-                <input type="password" id="confirmPassword"required>
-                <br>
-                <button type="submit">Đặt lại mật khẩu</button>
-            </form>
+    <div class="container" style="margin-top: 40px;">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="horizontal-container">
+                    <div class="progress-bar-container">
+
+                    </div>
+                    <div class="horizontal-form-box">
+                        <div class="horizontal-info-container text-center">
+                            <img
+                                src="https://static.stayjapan.com/assets/top/icon/values-7dd5c8966d7a6bf57dc4bcd11b2156e82a4fd0da94a26aecb560b6949efad2be.svg" />
+                            <p class="horizontal-heading">Reset your password</p>
+                            <p class="horizontal-subtitle">Your password needs to be at least 6 characters.</p>
+                        </div>
+                        <form class="horizontal-form"
+                            action="http://127.0.0.1:3000/api/v1/users/reset-password/<%= token %>" method="get"
+                            onsubmit="return validateForm()">
+                            <div class="o3-form-group">
+                                <label for="new_password">Mật khẩu mới</label>
+                                <input type="password" class="o3-form-control o3-input-lg" id="password"
+                                    name="newPassword" required>
+                            </div>
+                            <div class="o3-form-group">
+                                <label for="confirm_password">Xác nhận mật khẩu mới</label>
+                                <input type="password" class="o3-form-control o3-input-lg" id="confirmPassword"
+                                    name="confirmPassword" required>
+                            </div>
+                            <button class="o3-btn o3-btn-primary o3-btn-block" type="submit">Thiết lập mật khẩu
+                                mới</button>
+                        </form>
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
+
+<script>
+    function validateForm() {
+        var password = document.getElementById("password").value;
+        var confirmPassword = document.getElementById("confirmPassword").value;
+
+        if (password !== confirmPassword) {
+            alert("Mật khẩu và xác nhận mật khẩu không khớp.");
+            return false; // Ngăn chặn việc gửi biểu mẫu nếu mật khẩu không khớp
+        }
+        return true; // Cho phép gửi biểu mẫu nếu mật khẩu khớp
+    }
+</script>
 
 </html>

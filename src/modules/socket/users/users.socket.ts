@@ -70,6 +70,8 @@ export class UserSocketGateway implements OnModuleInit {
                     socket.emit('receiveUserData', userss);
                 }
                 let userDeviceId = await this.getUerDevice(user.id);
+                console.log("userDeviceId", userDeviceId);
+
                 if (userDeviceId) {
                     let userdevice = await this.getDeviceByUserId(userDeviceId);
                     if (userdevice) {
@@ -173,6 +175,10 @@ export class UserSocketGateway implements OnModuleInit {
                     console.log("data", data);
                     socket.emit("showPermisList", data)
                 })
+                let ListPerById = await this.ListPerById(userDeviceId)
+                if (ListPerById) {
+                    socket.emit("showListPerByid", ListPerById)
+                }
             }
         })
     }
@@ -403,11 +409,11 @@ export class UserSocketGateway implements OnModuleInit {
             throw err;
         }
     }
-    async ListPerById(UserDevice: any) {
+    async ListPerById(userDevice: any) {
         try {
             const device = await this.Permisstion.find({
                 where: {
-                    userId: UserDevice
+                    userId: userDevice.id
                 },
             });
             return device
