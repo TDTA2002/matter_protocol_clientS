@@ -23,7 +23,7 @@ export class UsersService {
 
       return {
         status: true,
-        message: "Register good!",
+        message: "Register succsess!",
         data: result
       }
 

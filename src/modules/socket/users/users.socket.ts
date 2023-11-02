@@ -204,6 +204,7 @@ export class UserSocketGateway implements OnModuleInit {
               if (userdevice) {
                 socket.emit('receiveDevice', userdevice);
               }
+              
               let binding = await this.getBindingDeviceByUserId(userDeviceId);
               if (binding && binding.length > 0) {
                 for (let i = 0; i < binding.length; i++) {
