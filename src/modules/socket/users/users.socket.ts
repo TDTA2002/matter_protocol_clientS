@@ -93,6 +93,7 @@ export class UserSocketGateway implements OnModuleInit {
 
                         }
                         socket.emit('receiveBinding', this.bindingDevices);
+
                     }
                 }
                 let device;
