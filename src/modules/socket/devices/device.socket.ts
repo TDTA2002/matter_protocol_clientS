@@ -43,7 +43,7 @@ export class DeviceSocket implements OnModuleInit {
       })
       socket.on('showChart', async (id: string) => {
         const data = await this.chartById(id)
-        console.log("data",data);
+        console.log("data", data);
         socket.emit("showChartList", data)
 
       })

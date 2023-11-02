@@ -317,32 +317,36 @@ export class UserSocketGateway implements OnModuleInit {
     async addpermission(newItems: any[], userId: string): Promise<boolean> {
         console.log("userId", userId);
         try {
+            const existingPermissions = await this.Permisstion.find({
+                where: {
+                    userId: userId,
+                },
+            });
+
+            for (const existingPermission of existingPermissions) {
+                await this.Permisstion.remove(existingPermission);
+            }
+
             if (newItems && newItems.length > 0) {
                 console.log("newItems", newItems);
                 console.log("Số lượng mục mới", newItems.length);
                 for (const newItem of newItems) {
-                    const existingPermission = await this.Permisstion.findOne({
-                        where: {
-                            node_id: newItem.node_id,
-                        },
-                    });
-                    if (!existingPermission) {
-                        const newPermission = new Permisstion();
-                        newPermission.userId = userId;
-                        newPermission.node_id = newItem.node_id;
-                        newPermission.name = newItem.name;
-                        console.log("newPermission", newPermission);
-                        await this.Permisstion.save(newPermission);
-                    }
-                    await this.Permisstion.save(existingPermission);
+                    const newPermission = new Permisstion();
+                    newPermission.userId = userId;
+                    newPermission.node_id = newItem.node_id;
+                    newPermission.name = newItem.name;
+                    console.log("newPermission", newPermission);
+                    await this.Permisstion.save(newPermission);
                 }
             }
+
             return true;
         } catch (error) {
             console.error("Lỗi", error);
             return false;
         }
     }
+
     async updatePermissionsActiveStatus(activeStatus: { [node_id: string]: boolean }): Promise<boolean> {
         try {
             const nodeIds = Object.keys(activeStatus);
