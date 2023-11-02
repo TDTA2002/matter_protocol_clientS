@@ -7,29 +7,49 @@ import { Device } from 'src/modules/devices/entities/device.entity';
 import { Repository } from 'typeorm';
 import { User } from 'src/modules/users/entities/user.entity';
 import { Chart } from 'src/modules/chart/entities/chart.entity';
+import { JwtService } from 'src/modules/jwt/jwt.service';
+import { UserDevice } from 'src/modules/user_devive/entities/user_devive.entity';
+import { Binding } from 'src/modules/binding/entities/binding.entity';
 
 interface deviceType {
   decodedData: string;
   socket: Socket
 }
+ interface BindingDeviceType {
+  binding: Binding;
+  bindingDevice: Device;
+}
 @WebSocketGateway(3001, { cors: true })
 export class DeviceSocket implements OnModuleInit {
   @WebSocketServer()
   server: Server;
-
+    bindingDevices: BindingDeviceType[] = [];
 
   private devices: deviceType[] = [];
 
   constructor(
+        private readonly jwt: JwtService,
     @InjectRepository(Device) private readonly Devices: Repository<Device>,
     @InjectRepository(User) private readonly User: Repository<User>,
     @InjectRepository(Chart) private readonly chartRespositoty: Repository<Chart>,
-
+        @InjectRepository(UserDevice)
+    private readonly UserDevive: Repository<UserDevice>,
+       @InjectRepository(Binding) private readonly Binding: Repository<Binding>,
   ) { }
 
   onModuleInit() {
+    
     this.server.on('connect', async (socket: Socket) => {
-      socket.on(
+       let token: string = String(socket.handshake.query.token);
+              let user = this.jwt.verifyToken(token) as User;
+      if (token == 'undefined' || !user) {
+        socket.emit('connectStatus', {
+          message: 'Đăng nhập thất bại',
+          status: false,
+        });
+        socket.disconnect();
+      } else {
+        socket.on(
         'requireDecoe',
         (data: { message: number; node_id: number; }) => {
           //  socket.emit('decode', "1213");
@@ -39,17 +59,103 @@ export class DeviceSocket implements OnModuleInit {
       );
       socket.on('unpairDevice', async (data: { message: number, id: string, node_id: number, active: boolean }) => {
         this.socketModule(socket, data.message, data.node_id)
-        this.unpair(socket, data.id, data.active)
+         await this.unpair(socket, data.id, data.active)
+        let userDeviceId = await this.getUerDevice(user.id);
+        console.log("userDeviceId",userDeviceId);
+              if (userDeviceId) {
+          let userdevice = await this.getDeviceByUserId(userDeviceId);
+          if (userdevice) {
+            socket.emit('receiveDevice', userdevice);
+            
+          }
+          let binding = await this.getBindingDeviceByUserId(userDeviceId);
+          if (binding && binding.length > 0) {
+            for (let i = 0; i < binding.length; i++) {
+              let listId = binding[i].deviceId;
+              const parts = listId.split('+');
+              for (let j = 0; j <= parts.length - 1; j++) {
+                let tempDevice = await this.getDeviceById(parts[j]);
+                if (tempDevice) {
+                  this.bindingDevices.push({
+                    binding: binding[i],
+                    bindingDevice: tempDevice[0],
+                  });
+                }
+              }
+            }
+            socket.emit('receiveBinding', this.bindingDevices);
+          }else{
+             socket.emit('receiveBinding', this.bindingDevices);
+          }
+        }
       })
       socket.on('showChart', async (id: string) => {
         const data = await this.chartById(id)
         console.log("data", data);
         socket.emit("showChartList", data)
-
       })
-
+          
+      }
 
     });
+  }
+    async getDeviceById(deviceId: any) {
+    try {
+      let listDevice = await this.Devices.find({
+        where: {
+          id: deviceId,
+        },
+      });
+      if (!listDevice) return false;
+      return listDevice;
+    } catch (err) {
+      return false;
+    }
+  }
+  async getBindingDeviceByUserId(userDeviceId: any) {
+    try {
+      let listBinding = await this.Binding.find({
+        where: {
+          UserDevice: userDeviceId,
+        },
+      });
+      if (!listBinding) return false;
+      return listBinding;
+    } catch (err) {
+      return false;
+    }
+  }
+    async getUerDevice(id: string) {
+    try {
+      let oldUserDevice = await this.User.findOne({
+        where: {
+          id,
+        },
+        relations: {
+          userDevice: true,
+        },
+      });
+      let UserDeviceId = oldUserDevice?.userDevice[0]?.userId;
+      if (!UserDeviceId) return null
+      return oldUserDevice.userDevice[0];
+    } catch (err) {
+      console.log('err', err);
+      return false;
+    }
+  }
+    async getDeviceByUserId(userDeviceId: any) {
+    try {
+      let listDevice = await this.Devices.find({
+        where: {
+          userDevice: userDeviceId,
+          active: true,
+        },
+      });
+      if (!listDevice) return false;
+      return listDevice;
+    } catch (err) {
+      return false;
+    }
   }
   async socketModule(socket: Socket, message: number, node_id: number) {
     const WebSocket = require('ws');
@@ -59,9 +165,6 @@ export class DeviceSocket implements OnModuleInit {
     const param = getCommand(String(message), {
       node_id: node_id,
     });
-
-    // let testdecoe = 'abc';
-    // socket.emit('decode', "ehfbehvwjn");
 
     console.log('param', param);
 
@@ -93,6 +196,8 @@ export class DeviceSocket implements OnModuleInit {
           } else if (jsonData?.message_id == 7 && jsonData?.result == null && jsonData.error_code != 5) {
             // this.unpair(socket,"ầnuiawbnf",false)
             socket.emit('unpairScuces', "Đã ngắt kết nối với thiết bị!")
+            
+            return
           } else {
             console.log('Lỗi', jsonData);
             if (jsonData.error_code == 5) {
@@ -118,11 +223,11 @@ export class DeviceSocket implements OnModuleInit {
       console.log('Kết nối đã đóng:', code, reason);
     });
   }
+
   async unpair(socket: Socket, id: string | null, active: boolean) {
     try {
       if (id == null) return false;
       let devieDelete = await this.Devices.update({ id }, { active: false });
-      console.log("devieDelete", devieDelete);
       return
     } catch (err) {
       return false;
