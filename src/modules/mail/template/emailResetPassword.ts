@@ -8,7 +8,7 @@ interface MailBody {
     language: string;
 }
 
-function genEmailString(mailBody: MailBody) {
+function getemailReset(mailBody: MailBody) {
     let mailGenerator = new Mailgen({
         theme: 'default',
         product: {
@@ -24,7 +24,7 @@ function genEmailString(mailBody: MailBody) {
             name: mailBody.receiverName,
             intro: `Chúng tôi là ${mailBody.productName}`,
             action: {
-                instructions: `Xin chào ${mailBody.receiverName} chúng tôi nhận được yêu cầu đăng ký tài khoản của bạn vui lòng bấm vào nút xác nhận để hoàn tất quá trình đăng ký!`,
+                instructions: `Xin chào, Chúng tôi được yêu cầu thay đổi mật khẩu của bạn vui lòng bấm xác nhận để có thể thay đổi mật khẩu!`,
                 button: {
                     color: '#22BC66',
                     text: "Xác nhận",
@@ -38,4 +38,4 @@ function genEmailString(mailBody: MailBody) {
     return mailGenerator.generate(email);
 }
 
-export default genEmailString;
+export default getemailReset;
