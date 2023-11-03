@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Res, Query, Render } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Res,
+  Query,
+  Render,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ApiTags } from '@nestjs/swagger';
@@ -6,7 +17,7 @@ import { MailService, templates } from '../mail/mail.service';
 import { JwtService } from '../jwt/jwt.service';
 import { Response, Request } from 'express';
 import { LoginDto } from './dto/login.dto';
-import * as  bcrypt from 'bcrypt'
+import * as bcrypt from 'bcrypt';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { checkOtp, createOtp } from '../otp/otp.service';
 import * as path from 'path';
@@ -17,39 +28,44 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 @ApiTags('users')
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService, private readonly mail: MailService, private readonly jwt: JwtService) { }
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly mail: MailService,
+    private readonly jwt: JwtService,
+  ) {}
 
   @Post()
   async register(@Body() createUserDto: CreateUserDto, @Res() res: Response) {
     try {
       let serRes = await this.usersService.register(createUserDto);
-      console.log("serRes.status", serRes);
+      console.log('serRes.status', serRes);
 
       if (serRes.status) {
         /* Mail */
         this.mail.sendMail({
-          subject: "Register Authentication Email",
+          subject: 'Register Authentication Email',
           to: serRes.data.email,
           html: templates.emailConfirm({
-            confirmLink: `${process.env.HOST}:${process.env.PORT}/api/v1/users/email-authentication/${serRes.data.id}/${this.jwt.createToken(serRes.data, "300000")}`,
-            language: "vi",
-            productName: "Master Protocol",
-            productWebUrl: "https://csa-iot.org/all-solutions/matter/",
-            receiverName: `${serRes.data.userName}`
-          })
-        })
-
+            confirmLink: `${process.env.HOST}:${
+              process.env.PORT
+            }/api/v1/users/email-authentication/${
+              serRes.data.id
+            }/${this.jwt.createToken(serRes.data, '300000')}`,
+            language: 'vi',
+            productName: 'Master Protocol',
+            productWebUrl: 'https://csa-iot.org/all-solutions/matter/',
+            receiverName: `${serRes.data.userName}`,
+          }),
+        });
       }
-
 
       return res.status(serRes.status ? 200 : 213).json(serRes);
     } catch (err) {
       return res.status(500).json({
-        message: "Server Controller Error!"
+        message: 'Server Controller Error!',
       });
     }
   }
-
 
   @Get('email-authentication/:userId/:token')
   @Render('sucess')
@@ -61,27 +77,26 @@ export class UsersController {
         if (serResUser.data.updateAt == userDecode.updateAt) {
           if (!serResUser.data.emailAuthentication) {
             let serRes = await this.usersService.update(userId, {
-              emailAuthentication: true
+              emailAuthentication: true,
             });
-            console.log("serRes", serRes)
+            console.log('serRes', serRes);
             if (serRes.status) {
               this.mail.sendMail({
-                subject: "Authentication Email Notice",
+                subject: 'Authentication Email Notice',
                 to: serRes.data.email,
-                text: `Email đã được liên kết với tài khoản ${serRes.data.userName}`
-              })
+                text: `Email đã được liên kết với tài khoản ${serRes.data.userName}`,
+              });
             }
             return
           } else {
-            return res.status(213).send("Tài khoản đã kích hoạt email!");
+            return res.status(213).send('Tài khoản đã kích hoạt email!');
           }
         }
       }
-
       return res.status(213).send("Email đã hết hạn!");
     } catch (err) {
       return res.status(500).json({
-        message: "Server Controller Error!"
+        message: 'Server Controller Error!',
       });
     }
   }
@@ -89,25 +104,27 @@ export class UsersController {
   @Post('login')
   async login(@Body() loginDto: LoginDto, @Res() res: Response) {
     try {
-      console.log("loginDto", loginDto);
+      console.log('loginDto', loginDto);
 
-      let serRes = await this.usersService.findByEmailOrUserName(loginDto.userNameOrEmail);
+      let serRes = await this.usersService.findByEmailOrUserName(
+        loginDto.userNameOrEmail,
+      );
 
       if (!serRes.status) {
         return res.status(213).json({
-          message: "Không tìm thấy tài khoản"
+          message: 'Không tìm thấy tài khoản',
         });
       }
 
-      if (serRes.data.status != "ACTIVE") {
+      if (serRes.data.status != 'ACTIVE') {
         return res.status(213).json({
-          message: `Tài khoản bị ${serRes.data.status}`
+          message: `Tài khoản bị ${serRes.data.status}`,
         });
       }
 
       if (!(await bcrypt.compare(loginDto.password, serRes.data.password))) {
         return res.status(213).json({
-          message: "Mật khẩu không chính xác"
+          message: 'Mật khẩu không chính xác',
         });
       }
       /* Mail */
@@ -123,22 +140,26 @@ export class UsersController {
           receiverName: `${serRes.data.userName}`
         })
       })
-
       return res.status(200).json({
-        token: this.jwt.createToken(serRes.data, '1d')
+        token: this.jwt.createToken(serRes.data, '1d'),
       });
       // return res.status(serRes.status ? HttpStatus.OK : HttpStatus.BAD_REQUEST).json(serRes);
     } catch (err) {
       return res.status(500).json({
-        message: "Server Controller Error!"
+        message: 'Server Controller Error!',
       });
     }
   }
   @Post('reset-password')
-  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto, @Res() res: Response) {
+  async resetPassword(
+    @Body() resetPasswordDto: ResetPasswordDto,
+    @Res() res: Response,
+  ) {
     try {
-      let serResUser = await this.usersService.findByEmailOrUserName(resetPasswordDto.email);
-      let token = this.jwt.createToken(serResUser.data, "300000")
+      let serResUser = await this.usersService.findByEmailOrUserName(
+        resetPasswordDto.email,
+      );
+      let token = this.jwt.createToken(serResUser.data, '300000');
 
       if (serResUser) {
         await this.mail.sendMail({
@@ -162,16 +183,14 @@ export class UsersController {
           });
       }
     } catch (err) {
-      return res
-        .status(500).json({
-          message: "Server Controller Error!"
-        });
+      return res.status(500).json({
+        message: 'Server Controller Error!',
+      });
     }
   }
 
   @Get('reset-password/:token')
   @Render('sucess')
-
   async authenticationResetPassword(@Param('token') token: string, @Query('newPassword') newPassword: string, @Res() res: Response) {
     try {
       let userDecode = this.jwt.verifyToken(token);
@@ -181,15 +200,16 @@ export class UsersController {
         if (serResUser.data.updateAt == userDecode.updateAt) {
           if (serResUser.status) {
             if (serResUser.data.updateAt == userDecode.updateAt) {
-
-              let serUpdateUser = await this.usersService.update(userDecode.id, {
-
-                password: await bcrypt.hash(newPassword, 10)
-              })
+              let serUpdateUser = await this.usersService.update(
+                userDecode.id,
+                {
+                  password: await bcrypt.hash(newPassword, 10),
+                },
+              );
               // let serUpdateUser = await this.usersService.update(userDecode.id, {
               //   password: await bcrypt.hash(userDecode.newPassword, 10)
               // })
-              console.log("serUpdateUser", serUpdateUser);
+              console.log('serUpdateUser', serUpdateUser);
 
               if (serUpdateUser.status) {
                 return
@@ -199,13 +219,13 @@ export class UsersController {
         }
       }
       return res.status(213).json({
-        message: "Xác thực thất bại!"
-      })
+        message: 'Xác thực thất bại!',
+      });
     } catch (err) {
-      console.log("err", err);
+      console.log('err', err);
 
       return res.status(500).json({
-        message: "Server Controller Error!"
+        message: 'Server Controller Error!',
       });
     }
   }
@@ -253,5 +273,4 @@ export class UsersController {
   async Renderejs(@Param('token') token: string, @Res() res: Response) {
     return { message: 'Trang chủ', token };
   }
-
 }
