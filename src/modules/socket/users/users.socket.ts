@@ -107,7 +107,6 @@ export class UserSocketGateway implements OnModuleInit {
                             code: newItem.code,
                         });
                         await socketIo.on('open', async () => {
-                            console.log('Đã kết nối tới cổng WebSocket', param);
                             socketIo.send(JSON.stringify(param));
                         });
                         socketIo.addEventListener('message', async (event) => {
@@ -251,6 +250,13 @@ export class UserSocketGateway implements OnModuleInit {
 
                     },
                 );
+                let ListPerById = await this.ListPerById(userDeviceId)
+                console.log("ListPerById", ListPerById);
+
+                if (ListPerById) {
+                    socket.emit('showListPerByid', ListPerById);
+
+                }
                 const WebSocket = require('ws');
                 const serverUrl = 'ws://192.168.1.41:5580/ws';
                 const socketIo = new WebSocket(serverUrl);
@@ -266,7 +272,7 @@ export class UserSocketGateway implements OnModuleInit {
                         const status = jsonData.data.find((item) => typeof item === 'boolean');
                         const node_id = jsonData.data.find((item) => typeof item === 'number');
 
-                        this.createUsageRecord(socket, node_id, status);
+                        this.createUsageRecord(socket, node_id, status, userDeviceId);
 
                         const chart = this.createUsageRecordEntry
                         if (chart) {
@@ -522,11 +528,11 @@ export class UserSocketGateway implements OnModuleInit {
 
         }
     }
-    async ListPerById(UserDevice: any) {
+    async ListPerById(userDeviceId: any) {
         try {
             const device = await this.Permisstion.find({
                 where: {
-                    userId: UserDevice,
+                    userId: userDeviceId.id,
                 },
             });
             return device;
@@ -575,10 +581,12 @@ export class UserSocketGateway implements OnModuleInit {
             return false;
         }
     }
-    async createUsageRecord(socket: Socket, deviceId: number, status: boolean): Promise<Chart | null> {
+    async createUsageRecord(socket: Socket, deviceId: number, status: boolean, userDeviceId: any): Promise<Chart | null> {
         console.log("deviceId", deviceId, status);
 
         const existingDevice = await this.Device.findOne({ where: { node_id: deviceId } });
+        const existingDevice1 = await this.Permisstion.findOne({ where: { node_id: deviceId } });
+        // console.log("existingDevice1", existingDevice1);
 
 
         if (existingDevice) {
@@ -586,21 +594,39 @@ export class UserSocketGateway implements OnModuleInit {
 
                 // Nếu trạng thái là true, đánh dấu thiết bị đang hoạt động.
                 existingDevice.isDeviceOn = true;
+                if (existingDevice1) {
+                    existingDevice1.isDeviceOn = true
+                }
                 existingDevice.startTime = new Date();
                 await this.Device.save(existingDevice);
+                await this.Permisstion.save(existingDevice1);
                 const data2 = await this.getDeviceByUser()
+                const data3 = await this.ListPerById(userDeviceId)
+                console.log("data3", data3);
+
                 if (data2) {
                     socket.emit('receiveDevice', data2)
+                }
+                if (data3) {
+                    socket.emit('showListPerByid', data2)
                 }
                 return null;
             } else {
                 const currentTime = new Date();
                 const elapsedTime = this.calculateElapsedTime(currentTime, existingDevice.startTime);
                 existingDevice.isDeviceOn = false;
+                if (existingDevice1) {
+                    existingDevice1.isDeviceOn = false
+                }
                 await this.Device.save(existingDevice);
+                await this.Permisstion.save(existingDevice1);
                 const data2 = await this.getDeviceByUser()
+                const data3 = await this.ListPerById(userDeviceId)
                 if (data2) {
                     socket.emit('receiveDevice', data2)
+                    if (data3) {
+                        socket.emit('showListPerByid', data2)
+                    }
                 }
                 return this.createUsageRecordEntry(socket, deviceId, elapsedTime);
             }
@@ -652,7 +678,6 @@ export class UserSocketGateway implements OnModuleInit {
                 },
             });
             if (!listDevice) return false;
-            console.log('listDevice', listDevice);
 
             return listDevice;
         } catch (err) {
