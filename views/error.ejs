@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Email Actived</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<style>
+    body {
+        /* background: rgb(21, 26, 31) */
+            background-image: url("https://i.pinimg.com/564x/b1/d6/bb/b1d6bb90434a993fd112ebf102d6f031.jpg");
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: cover;
+        width: 100vw;
+        height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    }
+
+    #card {
+        position: relative;
+        /* top: 110px; */
+        width: 420px;
+        display: block;
+        margin: auto;
+        text-align: center;
+        font-family: 'Source Sans Pro', sans-serif;
+    }
+
+    #upper-side {
+        padding: 2em;
+        background-color: rgb(241, 149, 11);
+        display: block;
+        color: #fff;
+        border-top-right-radius: 8px;
+        border-top-left-radius: 8px;
+    }
+    svg{
+        margin-bottom: 8px;
+    }   
+    #checkmark {
+        font-weight: lighter;
+        fill: #fff;
+        margin: -3.5em auto auto 20px;
+    }
+
+    #status {
+        font-weight: lighter;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        font-size: 1em;
+        margin-top: -.2em;
+        margin-bottom: 0;
+    }
+
+    #lower-side {
+        padding: 2em 2em 5em 2em;
+        background: #fff;
+        display: block;
+        border-bottom-right-radius: 8px;
+        border-bottom-left-radius: 8px;
+    }
+
+    #message {
+        margin-top: -.5em;
+        color: #757575;
+        letter-spacing: 1px;
+    }
+
+    #contBtn {
+        position: relative;
+        top: 1.5em;
+        text-decoration: none;
+        background: #8bc34a;
+        color: #fff;
+        margin: auto;
+        padding: .8em 3em;
+        -webkit-box-shadow: 0px 15px 30px rgba(50, 50, 50, 0.21);
+        -moz-box-shadow: 0px 15px 30px rgba(50, 50, 50, 0.21);
+        box-shadow: 0px 15px 30px rgba(50, 50, 50, 0.21);
+        border-radius: 25px;
+        -webkit-transition: all .4s ease;
+        -moz-transition: all .4s ease;
+        -o-transition: all .4s ease;
+        transition: all .4s ease;
+    }
+
+    #contBtn:hover {
+        -webkit-box-shadow: 0px 15px 30px rgba(50, 50, 50, 0.41);
+        -moz-box-shadow: 0px 15px 30px rgba(50, 50, 50, 0.41);
+        box-shadow: 0px 15px 30px rgba(50, 50, 50, 0.41);
+        -webkit-transition: all .4s ease;
+        -moz-transition: all .4s ease;
+        -o-transition: all .4s ease;
+        transition: all .4s ease;
+    }
+
+</style>
+
+<body>
+    <div id='card' class="animated fadeIn">
+        <div id='upper-side'>
+            <?xml version="1.0" encoding="utf-8"?>
+            <!-- Generator: Adobe Illustrator 17.1.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+            <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+            <?xml version="1.0" ?>
+            <!DOCTYPE svg PUBLIC '-//W3C//DTD SVG 1.0//EN' 'http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd'>
+            <svg height="48" style="overflow:visible;enable-background:new 0 0 32 32" viewBox="0 0 32 32" width="48"
+                xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                <g>
+                    <g id="Error_1_">
+                        <g id="Error">
+                            <circle cx="16" cy="16" id="BG" r="16" style="fill:#D72828;" />
+                            <path d="M14.5,25h3v-3h-3V25z M14.5,6v13h3V6H14.5z" id="Exclamatory_x5F_Sign"
+                                style="fill:#E6E6E6;" />
+                        </g>
+                    </g>
+                </g>
+            </svg>
+            <h3 id='status'>
+                Error
+            </h3>
+        </div>
+        <div id='lower-side'>
+            <p id='message'>
+                Your email has expired
+            </p>
+            <a href="http://localhost:5173/ " id="contBtn">Home pages</a>
+        </div>
+    </div>
+</body>
+
+
+</html>
