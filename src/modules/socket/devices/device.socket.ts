@@ -96,7 +96,6 @@ export class DeviceSocket implements OnModuleInit {
       })
           
       }
-
     });
   }
     async getDeviceById(deviceId: any) {

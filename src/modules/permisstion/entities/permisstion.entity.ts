@@ -16,6 +16,9 @@ export class Permisstion {
     userId: string
 
     @Column({ default: false })
+    isDeviceOn: boolean;
+
+    @Column({ default: false })
     active: boolean
 
     @ManyToOne(() => UserDevice, (user) => user.permiss)

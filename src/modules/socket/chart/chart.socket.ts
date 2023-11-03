@@ -16,7 +16,7 @@ interface deviceType {
     socket: Socket
 
 }
-@WebSocketGateway(3001, { cors: true })
+@WebSocketGateway(3005, { cors: true })
 export class ChartSocketGateway implements OnModuleInit {
     @WebSocketServer()
     server: Server;
@@ -40,13 +40,17 @@ export class ChartSocketGateway implements OnModuleInit {
                 console.log('Connected to WebSocket gateway');
                 socketIo.send(JSON.stringify(param));
             });
-            socketIo.addEventListener('message', (event) => {
+            socketIo.addEventListener('message', async (event) => {
                 const jsonData = JSON.parse(event.data.toString());
                 if (Array.isArray(jsonData.data)) {
                     const status = jsonData.data.find((item) => typeof item === 'boolean');
                     const node_id = jsonData.data.find((item) => typeof item === 'number');
 
                     this.createUsageRecord(socket, node_id, status);
+                    const data2 = await this.getDeviceByUserId()
+                    if (data2) {
+                        socket.emit('receiveDevice', data2)
+                    }
                     const chart = this.createUsageRecordEntry
                     if (chart) {
                         console.log("charwdwk1j19t", chart);
@@ -68,6 +72,7 @@ export class ChartSocketGateway implements OnModuleInit {
 
         const existingDevice = await this.Devices.findOne({ where: { node_id: deviceId } });
 
+
         if (existingDevice) {
             if (status == true) {
 
@@ -79,10 +84,8 @@ export class ChartSocketGateway implements OnModuleInit {
             } else {
                 const currentTime = new Date();
                 const elapsedTime = this.calculateElapsedTime(currentTime, existingDevice.startTime);
-
                 existingDevice.isDeviceOn = false;
                 await this.Devices.save(existingDevice);
-
                 return this.createUsageRecordEntry(socket, deviceId, elapsedTime);
             }
         } else {
@@ -121,7 +124,7 @@ export class ChartSocketGateway implements OnModuleInit {
             }
         } catch (error) {
             console.error("Lỗi khi tạo bản ghi sử dụng:", error);
-            throw error; 
+            throw error;
         }
     }
 
@@ -139,5 +142,20 @@ export class ChartSocketGateway implements OnModuleInit {
             return false;
         }
 
+    }
+    async getDeviceByUserId() {
+        try {
+            let listDevice = await this.Devices.find({
+                where: {
+                    active: true,
+                },
+            });
+            if (!listDevice) return false;
+            console.log('listDevice', listDevice);
+
+            return listDevice;
+        } catch (err) {
+            return false;
+        }
     }
 }

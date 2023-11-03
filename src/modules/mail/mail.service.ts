@@ -9,10 +9,13 @@ interface MailOption {
 }
 
 import emailConfirm from './template/emailConfirm'
-// import sendOtp from './templates/sendOtp'
+import emailLogin from './template/emailLogin'
+import emailResetPassword from './template/emailResetPassword'
+
 export const templates = {
     emailConfirm,
-    // sendOtp
+    emailLogin,
+    emailResetPassword
 }
 
 @Injectable()
