@@ -52,6 +52,7 @@ export class UsersController {
 
 
   @Get('email-authentication/:userId/:token')
+  @Render('sucess')
   async emailAuthentication(@Param('userId') userId: string, @Param('token') token: string, @Res() res: Response) {
     try {
       let userDecode = this.jwt.verifyToken(token);
@@ -70,13 +71,13 @@ export class UsersController {
                 text: `Email đã được liên kết với tài khoản ${serRes.data.userName}`
               })
             }
-
-            return res.status(serRes.status ? 200 : 213).send(serRes.status ? "ok" : "fail");
+            return
           } else {
             return res.status(213).send("Tài khoản đã kích hoạt email!");
           }
         }
       }
+
       return res.status(213).send("Email đã hết hạn!");
     } catch (err) {
       return res.status(500).json({
@@ -111,9 +112,16 @@ export class UsersController {
       }
       /* Mail */
       this.mail.sendMail({
-        subject: "Register Authentication Email",
+        subject: "Login Authentication Email",
         to: serRes.data.email,
-        text: `Tài khoản của bạn vừa được login ở một thiết bị mới`
+        // text: `Tài khoản của bạn vừa được login ở một thiết bị mới`,
+        html: templates.emailLogin({
+          // confirmLink: `${process.env.HOST}:${process.env.PORT}/`,
+          language: "vi",
+          productName: "Master Protocol",
+          productWebUrl: "https://csa-iot.org/all-solutions/matter/",
+          receiverName: `${serRes.data.userName}`
+        })
       })
 
       return res.status(200).json({
@@ -134,14 +142,15 @@ export class UsersController {
 
       if (serResUser) {
         await this.mail.sendMail({
-          subject: "Khôi phục mật khẩu",
+          subject: "Reset Password",
           to: resetPasswordDto.email,
-
-          html: `
-              <h2>Xác nhận email để nhận mật khẩu khôi phục</h2>
-              <a href='${process.env.HOST}:${process.env.PORT}/api/v1/users/authentication-reset-password/${token}'>Xác Nhận</a>
-          
-            `
+          html: templates.emailResetPassword({
+            confirmLink: `${process.env.HOST}:${process.env.PORT}/api/v1/users/authentication-reset-password/${token}`,
+            language: "vi",
+            productName: "Master Protocol",
+            productWebUrl: "https://csa-iot.org/all-solutions/matter/",
+            receiverName: ``
+          })
         })
         // let template = await ejs.renderFile(
         //   path.join(__dirname, "src/utils/ejs/reset-password.ejs"),
@@ -149,7 +158,7 @@ export class UsersController {
         // )
         return res
           .status(200).json({
-            message: "Check email!"
+            message: "Please Check your email!"
           });
       }
     } catch (err) {
@@ -161,6 +170,8 @@ export class UsersController {
   }
 
   @Get('reset-password/:token')
+  @Render('sucess')
+
   async authenticationResetPassword(@Param('token') token: string, @Query('newPassword') newPassword: string, @Res() res: Response) {
     try {
       let userDecode = this.jwt.verifyToken(token);
@@ -181,7 +192,7 @@ export class UsersController {
               console.log("serUpdateUser", serUpdateUser);
 
               if (serUpdateUser.status) {
-                return res.status(200).send("Change Password Ok!")
+                return
               }
             }
           }
